@@ -84,3 +84,55 @@ def BlogListAPIFuncView(request):
                 'Message': 'Oops, Something went wrong'
             }
             return Response(context, status=status.HTTP_400_BAD_REQUEST)
+        
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+def BlogDetailAPIFuncView(request, blog_id):
+    try:
+        querySet = Blog.objects.get(id=blog_id)
+        print(querySet)
+    except Blog.DoesNotExist:
+        return Response({'Message':"Blog not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'GET':
+        serializer = BlogSerializer(querySet)
+        context = {
+            'data': serializer.data
+        }
+        return Response(context, status=status.HTTP_200_OK)
+
+    if request.method == 'PUT':
+        serializer = BlogSerializer(querySet, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            context = {
+                'data':serializer.data,
+                'message':"Record updated successfully"
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        else:
+            context = {
+                'ERROR': serializer.errors,
+                'Message': 'Oops, Something went wrong'
+            }
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+    if request.method == 'PATCH':
+        serializer = BlogSerializer(querySet, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            context = {
+                'data':serializer.data,
+                'message':"Record updated successfully"
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        else:
+            context = {
+                'ERROR': serializer.errors,
+                'Message': 'Oops, Something went wrong'
+            }
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+
+    if request.method == 'DELETE':
+        querySet.delete()
+        return Response({'Message': "data deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
